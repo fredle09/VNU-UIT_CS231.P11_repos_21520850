@@ -127,7 +127,7 @@ def color_moment(image: np.ndarray) -> List[float]:
 
     feature = []
     for channel_data in channel_list:
-        normalize_vector = normalize_vector_norm(moment(channel_data))
+        normalize_vector = normalize_vector_min_max(moment(channel_data))
         feature.extend(normalize_vector)
         # feature.extend(moment(channel_data))
 
@@ -145,9 +145,14 @@ def chi_square_distance(x, y):
     return 0.5 * np.sum(((x - y) ** 2) / (x + y + 1e-10))
 
 
-# # Định nghĩa hàm Intersection
-# def intersection_distance(x, y):
-#     return np.sum(np.minimum(x, y))
+# Định nghĩa hàm Intersection
+def intersection_distance(x, y):
+    """
+    This function is used to calculate the Intersection distance between two vectors.
+    :param x: first vector
+    :param y: second vector
+    """
+    return np.sum(np.minimum(x, y))
 
 
 # Định nghĩa hàm Bhattacharyya
@@ -217,8 +222,8 @@ class KNeighborsClassifierExtends(KNeighborsClassifier):
     def __init__(self, metric, **kwargs):
         if metric == "chi-square":
             super().__init__(metric=chi_square_distance, **kwargs)
-        # elif metric == "intersection":
-        #     super().__init__(metric=intersection_distance, **kwargs)
+        elif metric == "intersection":
+            super().__init__(metric=intersection_distance, **kwargs)
         elif metric == "bhattacharyya":
             super().__init__(metric=bhattacharyya_distance, **kwargs)
         else:
@@ -304,7 +309,7 @@ if __name__ == '__main__':
     result_metric = pd.DataFrame(columns=['K', 'Metric', 'Accuracy'])
     for k in range(1, 6):
         for metric in ["euclidean", "correlation", "chi-square",
-                       #  "intersection",
+                        "intersection",
                        "bhattacharyya"]:
             accuracy = train_and_test_knn(k, metric)
             new_record = pd.DataFrame(
