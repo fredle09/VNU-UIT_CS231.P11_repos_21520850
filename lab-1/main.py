@@ -29,8 +29,8 @@ TRAIN_PATH = 'train'
 
 
 def read_image(image_path: str) -> np.ndarray:
-    """ 
-    This function is used to read images by LUV.
+    """This function is used to read images by LUV.
+
     :param image_path: path of the image
     :return image: image
     """
@@ -43,13 +43,12 @@ def read_image(image_path: str) -> np.ndarray:
     image: np.ndarray = cv2.cvtColor(image, cv2.COLOR_BGR2LUV)
     return image
 
+
 # Chuẩn hóa histogram feature
-
-
 def normalized_color_histogram(image: np.ndarray) -> List[np.ndarray]:
-    """
-    This function is used to create histogram. After creation of histogram, histogram is 
-        divided by total number of pixels and normalizing each histogram value between 0 and 1.
+    """This function is used to create histogram. After creation of histogram, histogram is 
+    divided by total number of pixels and normalizing each histogram value between 0 and 1.
+
     :param image: image
     :return feature: normalized histogram values for each channel
     """
@@ -66,8 +65,8 @@ def normalized_color_histogram(image: np.ndarray) -> List[np.ndarray]:
 
 
 def moment(channel: np.ndarray) -> List[float]:
-    """
-    This function is used for find color moments.
+    """This function is used for find color moments.
+
     :param channel: channel (L, a, b)
     :return feature: color moment results of the examined channel
     """
@@ -83,8 +82,8 @@ def moment(channel: np.ndarray) -> List[float]:
 
 
 def normalize_vector_min_max(feature):
-    """
-    This function is used to normalize the vector using Min-Max normalization.
+    """This function is used to normalize the vector using Min-Max normalization.
+
     :param feature: vector to be normalized
     :return: normalized vector
     """
@@ -99,8 +98,8 @@ def normalize_vector_min_max(feature):
 
 
 def normalize_vector_norm(feature: List[float]) -> List[float]:
-    """
-    This function is used to normalize the vector using L2 normalization.
+    """This function is used to normalize the vector using L2 normalization.
+
     :param feature: vector to be normalized
     :return: normalized vector
     """
@@ -112,8 +111,8 @@ def normalize_vector_norm(feature: List[float]) -> List[float]:
 
 # Chuẩn hóa color-moment feature
 def color_moment(image: np.ndarray) -> List[float]:
-    """
-    This function is used to create color moment features.
+    """This function is used to create color moment features.
+
     :param image: image
     :return feature: calculated color moment values for each channel
     """
@@ -136,8 +135,8 @@ def color_moment(image: np.ndarray) -> List[float]:
 
 # Định nghĩa hàm Chi-square
 def chi_square_distance(x, y):
-    """
-    This function is used to calculate the Chi-square distance between two vectors.
+    """This function is used to calculate the Chi-square distance between two vectors.
+
     :param x: first vector
     :param y: second vector
     :return: Chi-square distance between x and y
@@ -147,8 +146,8 @@ def chi_square_distance(x, y):
 
 # Định nghĩa hàm Intersection
 def intersection_distance(x, y):
-    """
-    This function is used to calculate the Intersection distance between two vectors.
+    """This function is used to calculate the Intersection distance between two vectors.
+
     :param x: first vector
     :param y: second vector
     """
@@ -157,8 +156,8 @@ def intersection_distance(x, y):
 
 # Định nghĩa hàm Bhattacharyya
 def bhattacharyya_distance(p, q):
-    """
-    This function is used to calculate the Bhattacharyya distance between two vectors.
+    """This function is used to calculate the Bhattacharyya distance between two vectors.
+
     :param p: first vector
     :param q: second vector
     :return: Bhattacharyya distance between p and q
@@ -168,8 +167,8 @@ def bhattacharyya_distance(p, q):
 
 # Tính toán và chuẩn hóa cdc feature
 def calculate_cdc(image: np.ndarray) -> List[float]:
-    """
-    This function is used to calculate the Color Difference Coherence (CDC) feature.
+    """This function is used to calculate the Color Difference Coherence (CDC) feature.
+
     :param image: image
     :return: CDC feature
     """
@@ -186,8 +185,8 @@ def calculate_cdc(image: np.ndarray) -> List[float]:
 
 # Tính toán và chuẩn hóa ccv feature
 def calculate_ccv(image: np.ndarray) -> List[float]:
-    """
-    This function is used to calculate the Color Coherence Vector (CCV) feature.
+    """This function is used to calculate the Color Coherence Vector (CCV) feature.
+
     :param image: image
     :return: CCV feature
     """
@@ -203,6 +202,11 @@ def calculate_ccv(image: np.ndarray) -> List[float]:
 
 # Trích xuất các đặc trưng từ ảnh
 def extract_features(image):
+    """ This function is used to extract features from the given image.
+
+    :param image: image
+    :return: extracted features
+    """
     histogram_features = normalized_color_histogram(image)
     moment_features = color_moment(image)
     cdc_features = calculate_cdc(image)
@@ -219,6 +223,10 @@ def extract_features(image):
 
 # KNeighborsClassifierExtends
 class KNeighborsClassifierExtends(KNeighborsClassifier):
+    """Extends KNeighborsClassifier to allow chi-square, intersection,
+    and bhattacharyya distance functions.
+    """
+
     def __init__(self, metric, **kwargs):
         if metric == "chi-square":
             super().__init__(metric=chi_square_distance, **kwargs)
@@ -232,8 +240,8 @@ class KNeighborsClassifierExtends(KNeighborsClassifier):
 
 # Đếm số lượng ảnh trong thư mục
 def count_data(path: str) -> int:
-    """
-    Count number of images in the given path.
+    """Count number of images in the given path.
+
     :param path: Path to the directory containing images
     :return: Number of images in the directory
     """
@@ -249,8 +257,8 @@ def count_data(path: str) -> int:
 
 # Load dữ liệu từ thư mục
 def load_data(path: str, number_of_image_count: int):
-    """
-    Load data from the given path.
+    """Load data from the given path.
+
     :param path: Path to the directory containing images
     :param number_of_image_count: Number of images in the directory
     :return: Data and labels
@@ -273,6 +281,11 @@ def load_data(path: str, number_of_image_count: int):
 
 # Train and test KNN
 def train_and_test_knn(k: int, metric: str) -> float:
+    """Train and test KNN model using the given hyperparameters.
+    
+    :param k: Number of neighbors
+    :param metric: Distance metric
+    :return: Accuracy of the model"""
     model = KNeighborsClassifierExtends(n_neighbors=k, metric=metric)
     model.fit(train_data, train_label)
 
@@ -309,7 +322,7 @@ if __name__ == '__main__':
     result_metric = pd.DataFrame(columns=['K', 'Metric', 'Accuracy'])
     for k in range(1, 6):
         for metric in ["euclidean", "correlation", "chi-square",
-                        "intersection",
+                       "intersection",
                        "bhattacharyya"]:
             accuracy = train_and_test_knn(k, metric)
             new_record = pd.DataFrame(
