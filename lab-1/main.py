@@ -9,6 +9,7 @@ Modified on Thu Sep 26 2024
 VNU-UIT_CS231.P11
 21520850 - Lê Trung Hiếu
 """
+
 import pandas as pd
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.cluster import KMeans
@@ -23,9 +24,10 @@ import os
 
 from typing import List
 
+
 BIN_SIZE = 16
-TEST_PATH = 'test'
-TRAIN_PATH = 'train'
+TEST_PATH = "test"
+TRAIN_PATH = "train"
 
 
 def read_image(image_path: str) -> np.ndarray:
@@ -64,6 +66,7 @@ def normalized_color_histogram(image: np.ndarray) -> List[np.ndarray]:
     return feature
 
 
+# Sử dụng thuộc tính moment
 def moment(channel: np.ndarray) -> List[float]:
     """This function is used for find color moments.
 
@@ -81,6 +84,7 @@ def moment(channel: np.ndarray) -> List[float]:
     return feature
 
 
+# Hàm chuẩn hóa min, max
 def normalize_vector_min_max(feature):
     """This function is used to normalize the vector using Min-Max normalization.
 
@@ -97,6 +101,7 @@ def normalize_vector_min_max(feature):
     return (feature - min_val) / (max_val - min_val)
 
 
+# Hàm chuẩn hóa L2
 def normalize_vector_norm(feature: List[float]) -> List[float]:
     """This function is used to normalize the vector using L2 normalization.
 
@@ -126,11 +131,56 @@ def color_moment(image: np.ndarray) -> List[float]:
 
     feature = []
     for channel_data in channel_list:
-        normalize_vector = normalize_vector_min_max(moment(channel_data))
-        feature.extend(normalize_vector)
-        # feature.extend(moment(channel_data))
+        feature.extend(moment(channel_data))
 
     return feature
+
+
+# Tính toán và chuẩn hóa cdc feature
+def calculate_cdc(image: np.ndarray) -> List[float]:
+    """This function is used to calculate the Color Difference Coherence (CDC) feature.
+
+    :param image: image
+    :return: CDC feature
+    """
+    cdc_feature: List[float] = []
+    for i in range(image.shape[2] - 1):
+        cdc_feature.append(
+            np.mean(np.abs(image[:, :, i] - image[:, :, i + 1])))
+
+    return cdc_feature
+
+
+# Tính toán và chuẩn hóa ccv feature
+def calculate_ccv(image: np.ndarray) -> List[float]:
+    """This function is used to calculate the Color Coherence Vector (CCV) feature.
+
+    :param image: image
+    :return: CCV feature
+    """
+    _, coherence_map = cv2.threshold(image, 127, 255, cv2.THRESH_BINARY)
+    ccv_feature = coherence_map.flatten().tolist()
+
+    return ccv_feature
+
+
+# Trích xuất các đặc trưng từ ảnh
+def extract_features(image, feature: str):
+    """ This function is used to extract features from the given image.
+
+    :param image: image
+    :return: extracted features
+    """
+    if feature == "histogram":
+        return normalized_color_histogram(image)
+    elif feature == "moment":
+        return normalize_vector_min_max(color_moment(image))
+    elif feature == "cdc":
+        return normalize_vector_norm(calculate_cdc(image))
+    elif feature == "ccv":
+        return normalize_vector_norm(calculate_ccv(image))
+
+    raise ValueError("Missing feature value in extract_feature")
 
 
 # Định nghĩa hàm Chi-square
@@ -163,62 +213,6 @@ def bhattacharyya_distance(p, q):
     :return: Bhattacharyya distance between p and q
     """
     return -np.log(np.sum(np.sqrt(p * q)))
-
-
-# Tính toán và chuẩn hóa cdc feature
-def calculate_cdc(image: np.ndarray) -> List[float]:
-    """This function is used to calculate the Color Difference Coherence (CDC) feature.
-
-    :param image: image
-    :return: CDC feature
-    """
-    cdc_feature: List[float] = []
-    for i in range(image.shape[2] - 1):
-        cdc_feature.append(
-            np.mean(np.abs(image[:, :, i] - image[:, :, i + 1])))
-
-    # print(">> cdc_feature:", cdc_feature)
-    # return cdc_feature
-    normalize_vector = normalize_vector_norm(cdc_feature)
-    return normalize_vector
-
-
-# Tính toán và chuẩn hóa ccv feature
-def calculate_ccv(image: np.ndarray) -> List[float]:
-    """This function is used to calculate the Color Coherence Vector (CCV) feature.
-
-    :param image: image
-    :return: CCV feature
-    """
-    _, coherence_map = cv2.threshold(image, 127, 255, cv2.THRESH_BINARY)
-    ccv_feature = coherence_map.flatten().tolist()
-
-    # return ccv_feature
-    # normalize_vector = normalize_vector_min_max(ccv_feature)
-    # return normalize_vector
-    normalize_vector = normalize_vector_norm(ccv_feature)
-    return normalize_vector
-
-
-# Trích xuất các đặc trưng từ ảnh
-def extract_features(image):
-    """ This function is used to extract features from the given image.
-
-    :param image: image
-    :return: extracted features
-    """
-    histogram_features = normalized_color_histogram(image)
-    moment_features = color_moment(image)
-    cdc_features = calculate_cdc(image)
-    ccv_features = calculate_ccv(image)
-
-    # print(">> histogram_features:", histogram_features)
-    # print(">> moment_features:", moment_features)
-    # print(">> cdc_features:", cdc_features)
-    # print(">> ccv_features:", ccv_features)
-    features = histogram_features + moment_features + cdc_features + ccv_features
-    # print(">> Features:", features.shape)
-    return features
 
 
 # KNeighborsClassifierExtends
@@ -256,7 +250,7 @@ def count_data(path: str) -> int:
 
 
 # Load dữ liệu từ thư mục
-def load_data(path: str, number_of_image_count: int):
+def load_data(path: str, number_of_image_count: int, feature: str):
     """Load data from the given path.
 
     :param path: Path to the directory containing images
@@ -272,7 +266,7 @@ def load_data(path: str, number_of_image_count: int):
             image_list = os.listdir(os.path.join(path_))
             for image_name in image_list:
                 image = read_image(os.path.join(path_, image_name))
-                image_features = extract_features(image)
+                image_features = extract_features(image, feature)
                 data.append(image_features)
                 label.append(index)
                 pbar.update(1)
@@ -280,17 +274,24 @@ def load_data(path: str, number_of_image_count: int):
 
 
 # Train and test KNN
-def train_and_test_knn(k: int, metric: str) -> float:
+def train_and_test_knn(
+    k: int,
+    train_data: np.ndarray,
+    train_label: np.ndarray,
+    metric: str,
+    feature: str
+) -> float:
     """Train and test KNN model using the given hyperparameters.
-    
+
     :param k: Number of neighbors
     :param metric: Distance metric
     :return: Accuracy of the model"""
     model = KNeighborsClassifierExtends(n_neighbors=k, metric=metric)
     model.fit(train_data, train_label)
 
-    print(f'<----------TEST START K = {k}, metric = {metric} ---------->')
-    test_data, test_label = load_data(TEST_PATH, number_of_test_image_count)
+    print(f"<---------- TEST START: K = {k}, Metric = {metric} ---------->")
+    test_data, test_label = load_data(
+        TEST_PATH, number_of_test_image_count, feature)
 
     prediction = model.predict(test_data)
 
@@ -307,7 +308,14 @@ def train_and_test_knn(k: int, metric: str) -> float:
     return accuracy
 
 
-if __name__ == '__main__':
+FEATURES = ["histogram", "moment", "cdc", "ccv"]
+K_VALUES = [1, 5]
+METRICS = ["euclidean", "correlation",
+           "chi-square", "intersection",
+           "bhattacharyya"]
+
+
+if __name__ == "__main__":
     # find number of train images
     number_of_train_image_count = count_data(TRAIN_PATH)
 
@@ -315,19 +323,26 @@ if __name__ == '__main__':
     number_of_test_image_count = count_data(TEST_PATH)
 
     color_list = os.listdir(TRAIN_PATH)
-    print('<----------TRAIN START ---------->')
-    train_data, train_label = load_data(
-        TRAIN_PATH, number_of_train_image_count)
 
-    result_metric = pd.DataFrame(columns=['K', 'Metric', 'Accuracy'])
-    for k in range(1, 6):
-        for metric in ["euclidean", "correlation", "chi-square",
-                       "intersection",
-                       "bhattacharyya"]:
-            accuracy = train_and_test_knn(k, metric)
-            new_record = pd.DataFrame(
-                [{'K': k, 'Metric': metric, 'Accuracy': accuracy}])
-            result_metric = pd.concat(
-                [result_metric, new_record], ignore_index=True)
+    result_metric = pd.DataFrame(
+        columns=["Feature", "K", "Metric", "Accuracy"])
 
-    print(result_metric.pivot(index='K', columns='Metric', values='Accuracy'))
+    for feature in FEATURES:
+        print(f"<---------- TRAIN START: Feature = {feature} ---------->")
+        train_data, train_label = load_data(
+            TRAIN_PATH, number_of_train_image_count, feature)
+
+        for k in K_VALUES:
+            for metric in METRICS:
+                accuracy = train_and_test_knn(
+                    k, train_data, train_label, metric, feature)
+                new_record = pd.DataFrame(
+                    [{"Feature": feature, "K": k, "Metric": metric, "Accuracy": accuracy}])
+                result_metric = pd.concat(
+                    [result_metric, new_record], ignore_index=True)
+
+    print(result_metric.pivot(
+        index=["K", "Feature"],
+        columns="Metric",
+        values="Accuracy"
+    ))
