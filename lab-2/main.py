@@ -53,13 +53,20 @@ def min_max_normalize(vector: np.ndarray) -> np.ndarray:
     return (vector - min_val) / (max_val - min_val)
 
 
-def parse_image_to_vector(img: np.ndarray) -> np.ndarray:
+def parse_image_to_vector(img: np.ndarray, normalize_method: str) -> np.ndarray:
     img_ = cv2.resize(img, (256, 256))
     _, _, g, _ = sobel_filters(img_)
     row_sum = np.sum(g, axis=1, dtype=np.float64)
     col_sum = np.sum(g, axis=0, dtype=np.float64)
     vector = np.hstack((row_sum.T, col_sum))
-    return min_max_normalize(vector)
+    if normalize_method == "none":
+        return vector
+    elif normalize_method == "normalize":
+        return normalize_vector(vector)
+    elif normalize_method == "min-max":
+        return min_max_normalize(vector)
+    else:
+        raise ValueError(f"Unknown normalization method: {normalize_method}")
 
 
 def load_all_images_path_from_folder(folder_path: str) -> list:
@@ -71,12 +78,14 @@ def load_all_images_path_from_folder(folder_path: str) -> list:
     return images_path
 
 
-def parse_images_to_vectors_and_label(images_path: list) -> tuple[list, list]:
+def parse_images_to_vectors_and_label(
+    images_path: list, normalize_method: str
+) -> tuple[list, list]:
     images = []
     labels = []
     for img_path in images_path:
         img = load_image(img_path)
-        img_vector = parse_image_to_vector(img)
+        img_vector = parse_image_to_vector(img, normalize_method)
         images.append(img_vector)
         labels.append(img_path.split("\\")[-1].split("-")[0])
     return images, labels
@@ -153,7 +162,7 @@ def main():
         "--stage",
         choices=["1", "2", "all"],
         default="all",
-        help="Stage to run (1, 2, or all)",
+        help="Stage to run (1, 2, or all), default=all",
     )
     parser.add_argument(
         "-k", type=int, default=3, help="Number of neighbors for kNN classifier"
@@ -164,19 +173,28 @@ def main():
         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
         help="Set the logging level",
     )
+    parser.add_argument(
+        "--use-normalize",
+        choices=["none", "normalize", "min-max"],
+        default="min-max",
+        help="Normalization method to apply to feature vectors (none, normalize, or min-max), default=min-max",
+    )
 
     args = parser.parse_args()
     logging.basicConfig(level=getattr(logging, args.log.upper()))
 
     stage = args.stage
     k = args.k
+    normalize_method = args.use_normalize
 
     if stage == "1" or stage == "all":
         # Load images
         for folder_name in NAME_FOLDERS:
             folder_path = os.path.join(PATH_FOLDER, folder_name)
             images_path = load_all_images_path_from_folder(folder_path)
-            images, labels = parse_images_to_vectors_and_label(images_path)
+            images, labels = parse_images_to_vectors_and_label(
+                images_path, normalize_method
+            )
             store_features_vectors_and_labels(images, labels, folder_name)
             logging.info(
                 f"Images and labels from {folder_name} folder parsed successfully"
@@ -200,6 +218,8 @@ def main():
 
         accuracy = np.trace(cm) / np.sum(cm)
         logging.info("Accuracy: %.2f%%", accuracy * 100)
+
+        return accuracy
 
 
 if __name__ == "__main__":
