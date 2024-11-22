@@ -187,7 +187,7 @@ def main():
     k = args.k
     normalize_method = args.use_normalize
 
-    if stage == "1" or stage == "all":
+    if stage == "1":
         # Load images
         for folder_name in NAME_FOLDERS:
             folder_path = os.path.join(PATH_FOLDER, folder_name)
@@ -200,7 +200,24 @@ def main():
                 f"Images and labels from {folder_name} folder parsed successfully"
             )
 
-    if stage == "2" or stage == "all":
+    elif stage == "all":
+        # Process train data without storing to files
+        train_folder_path = os.path.join(PATH_FOLDER, "train")
+        train_images_path = load_all_images_path_from_folder(train_folder_path)
+        x_train, y_train = parse_images_to_vectors_and_label(
+            train_images_path, normalize_method
+        )
+        logging.info("Train images and labels parsed successfully")
+
+        # Process test data without storing to files
+        test_folder_path = os.path.join(PATH_FOLDER, "test")
+        test_images_path = load_all_images_path_from_folder(test_folder_path)
+        x_test, y_test = parse_images_to_vectors_and_label(
+            test_images_path, normalize_method
+        )
+        logging.info("Test images and labels parsed successfully")
+
+    if stage == "2":
         x_train, y_train = load_features_vectors_and_labels("train")
         y_train_encoded = order_encoding_labels(y_train)
 
@@ -208,6 +225,25 @@ def main():
         logging.info(f"k-NN classifier trained successfully with k={k}")
 
         x_test, y_test = load_features_vectors_and_labels("test")
+        y_test_encoded = order_encoding_labels(y_test)
+        predictions = knn.predict(x_test)
+        logging.debug("Predictions: %s", predictions)
+        logging.debug("Actual labels: %s", y_test_encoded)
+
+        cm = confusion_matrix(y_test_encoded, predictions)
+        logging.info("Confusion Matrix:\n%s", cm)
+
+        accuracy = np.trace(cm) / np.sum(cm)
+        logging.info("Accuracy: %.2f%%", accuracy * 100)
+
+        return accuracy
+
+    elif stage == "all":
+        # Encode labels and train classifier in-memory
+        y_train_encoded = order_encoding_labels(y_train)
+        knn = train_knn_classifier(x_train, y_train_encoded, k)
+        logging.info(f"k-NN classifier trained successfully with k={k}")
+
         y_test_encoded = order_encoding_labels(y_test)
         predictions = knn.predict(x_test)
         logging.debug("Predictions: %s", predictions)
