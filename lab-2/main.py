@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 import os
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import confusion_matrix
-import sys
+import argparse
+import logging
 
 
 PATH_FOLDER = "images"
@@ -147,38 +148,28 @@ def train_knn_classifier(x_train, y_train, k=3):
 
 
 def main():
-    if len(sys.argv) < 2:
-        print("Usage: python main.py [--stage <stage>] [-k <neighbors>]")
-        print("Stages: 1, 2, or all (default: all)")
-        print()
-        return
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--stage",
+        choices=["1", "2", "all"],
+        default="all",
+        help="Stage to run (1, 2, or all)",
+    )
+    parser.add_argument(
+        "-k", type=int, default=3, help="Number of neighbors for kNN classifier"
+    )
+    parser.add_argument(
+        "--log",
+        default="INFO",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        help="Set the logging level",
+    )
 
-    stage = "all"
-    k = 3  # Default number of neighbors
-    if "--stage" in sys.argv:
-        stage_index = sys.argv.index("--stage") + 1
-        if stage_index < len(sys.argv):
-            stage = sys.argv[stage_index]
-            if stage not in ["1", "2", "all"]:
-                print("Error: Invalid value for --stage option.")
-                print("Usage: python main.py [--stage <stage>] [-k <neighbors>]")
-                print("Stages: 1, 2, or all (default: all)")
-                return
-        else:
-            print("Error: Missing value for --stage option.")
-            return
+    args = parser.parse_args()
+    logging.basicConfig(level=getattr(logging, args.log.upper()))
 
-    if "-k" in sys.argv:
-        k_index = sys.argv.index("-k") + 1
-        if k_index < len(sys.argv):
-            try:
-                k = int(sys.argv[k_index])
-            except ValueError:
-                print("Error: Invalid value for -k option. It must be an integer.")
-                return
-        else:
-            print("Error: Missing value for -k option.")
-            return
+    stage = args.stage
+    k = args.k
 
     if stage == "1" or stage == "all":
         # Load images
@@ -187,34 +178,28 @@ def main():
             images_path = load_all_images_path_from_folder(folder_path)
             images, labels = parse_images_to_vectors_and_label(images_path)
             store_features_vectors_and_labels(images, labels, folder_name)
-            print(f"Images and labels from {folder_name} folder parsed successfully")
-
-        print()
+            logging.info(
+                f"Images and labels from {folder_name} folder parsed successfully"
+            )
 
     if stage == "2" or stage == "all":
         x_train, y_train = load_features_vectors_and_labels("train")
         y_train_encoded = order_encoding_labels(y_train)
 
         knn = train_knn_classifier(x_train, y_train_encoded, k)
-        print(f"k-NN classifier trained successfully with k={k}")
+        logging.info(f"k-NN classifier trained successfully with k={k}")
 
-        # Example prediction
         x_test, y_test = load_features_vectors_and_labels("test")
         y_test_encoded = order_encoding_labels(y_test)
         predictions = knn.predict(x_test)
-        print("Predictions:", predictions)
-        print("Actual labels:", y_test_encoded)
+        logging.debug("Predictions: %s", predictions)
+        logging.debug("Actual labels: %s", y_test_encoded)
 
-        # Compute confusion matrix
         cm = confusion_matrix(y_test_encoded, predictions)
-        print("Confusion Matrix:")
-        print(cm)
+        logging.info("Confusion Matrix:\n%s", cm)
 
-        # Compute accuracy
         accuracy = np.trace(cm) / np.sum(cm)
-        print("Accuracy:", round(accuracy * 100, 2), "%")
-
-        print()
+        logging.info("Accuracy: %.2f%%", accuracy * 100)
 
 
 if __name__ == "__main__":
