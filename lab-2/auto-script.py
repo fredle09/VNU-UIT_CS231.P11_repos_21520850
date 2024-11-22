@@ -1,12 +1,13 @@
 import subprocess
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 k_values = range(1, 11)
 normalize_methods = ["none", "normalize", "min-max"]
 accuracies = {method: [] for method in normalize_methods}
 
-for method in normalize_methods:
-    for k in k_values:
+for method in tqdm(normalize_methods, desc="Methods"):
+    for k in tqdm(k_values, desc="k-values", leave=False):
         cmd = [
             "python",
             "main.py",
