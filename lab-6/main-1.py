@@ -110,13 +110,10 @@ def process_single_image(img_filename):
 
     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     print(f"Processing image {img_filename}...")
-
-    # Apply FCM clustering
-    clusterd_fcm = fcm_clustering(img, n_clusters=6)
+    clusterd_fcm = fcm_clustering(img_rgb, n_clusters=6)
     print(f"Finished FCM clustering for {img_filename}")
 
-    print(f"Processing image for {img_filename}")
-    # Apply Mean Shift clustering
+    print(f"Processing image {img_filename}")
     clusterd_mean_shift = mean_shift_clustering(img, bandwidth=10)
     print(f"Finished Mean Shift clustering for {img_filename}")
 
@@ -159,10 +156,10 @@ def process_images(parallel=False):
                 )
 
     # Visualize the images in a grid
-    visualize_images_grid(images, titles, rows=4, cols=3, wspace=0.5, hspace=0.5)
+    visualize_images_grid(images, titles, rows=4, cols=2, wspace=0.5, hspace=0.5)
 
 
 if __name__ == "__main__":
     process_images(
-        parallel=True
+        parallel=False
     )  # Set parallel to False to disable parallel processing
