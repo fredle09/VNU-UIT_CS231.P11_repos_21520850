@@ -2,6 +2,30 @@
 """
 VNU-UIT_CS231.P11
 21520850 - Lê Trung Hiếu
+
+-- Kết quả
+Logistic Regression - none              - Accuracy:     0.5333333333333333
+K Neatest Neighbor  - none       - k: 1 - Accuracy:     0.6
+K Neatest Neighbor  - none       - k: 3 - Accuracy:     0.6666666666666666
+K Neatest Neighbor  - none       - k: 5 - Accuracy:     0.5333333333333333
+K Neatest Neighbor  - none       - k: 7 - Accuracy:     0.5666666666666667
+K Neatest Neighbor  - none       - k: 9 - Accuracy:     0.5
+Logistic Regression - normalize         - Accuracy:     0.6333333333333333
+K Neatest Neighbor  - normalize  - k: 1 - Accuracy:     0.6
+K Neatest Neighbor  - normalize  - k: 3 - Accuracy:     0.5666666666666667
+K Neatest Neighbor  - normalize  - k: 5 - Accuracy:     0.5
+K Neatest Neighbor  - normalize  - k: 7 - Accuracy:     0.43333333333333335
+K Neatest Neighbor  - normalize  - k: 9 - Accuracy:     0.43333333333333335
+Logistic Regression - min-max           - Accuracy:     0.5666666666666667
+K Neatest Neighbor  - min-max    - k: 1 - Accuracy:     0.4666666666666667
+K Neatest Neighbor  - min-max    - k: 3 - Accuracy:     0.5666666666666667
+K Neatest Neighbor  - min-max    - k: 5 - Accuracy:     0.5
+K Neatest Neighbor  - min-max    - k: 7 - Accuracy:     0.43333333333333335
+K Neatest Neighbor  - min-max    - k: 9 - Accuracy:     0.43333333333333335
+
+-- Nhận xét:
+Logistic Regression cho kết quả tốt nhất với normalize method là "normalize" và accuracy = 0.6333
+KNN cho kết quả tốt nhất với normalize method là "none" và k = 3 và accuracy = 0.6667
 """
 
 from enum import Enum
