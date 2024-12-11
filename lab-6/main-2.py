@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+"""
+VNU-UIT_CS231.P11
+21520850 - Lê Trung Hiếu
+"""
+
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
