@@ -12,17 +12,13 @@ VNU-UIT_CS231.P11
 
 import pandas as pd
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.cluster import KMeans
 from sklearn.metrics import confusion_matrix
 from scipy.stats import skew, kurtosis
 from sklearn import metrics
 from tqdm import tqdm
 import numpy as np
-import sys
 import cv2
 import os
-
-from typing import List
 
 
 BIN_SIZE = 16
@@ -40,15 +36,16 @@ def read_image(image_path: str) -> np.ndarray:
     # Check if image is read properly
     if image is None:
         raise ValueError(
-            f"Image at path {image_path} could not be loaded. Please check the path or file.")
+            f"Image at path {image_path} could not be loaded. Please check the path or file."
+        )
 
     image: np.ndarray = cv2.cvtColor(image, cv2.COLOR_BGR2LUV)
     return image
 
 
 # Chuẩn hóa histogram feature
-def normalized_color_histogram(image: np.ndarray) -> List[np.ndarray]:
-    """This function is used to create histogram. After creation of histogram, histogram is 
+def normalized_color_histogram(image: np.ndarray) -> list[np.ndarray]:
+    """This function is used to create histogram. After creation of histogram, histogram is
     divided by total number of pixels and normalizing each histogram value between 0 and 1.
 
     :param image: image
@@ -57,17 +54,18 @@ def normalized_color_histogram(image: np.ndarray) -> List[np.ndarray]:
     row, column, channel = image.shape[:3]
     size: int = row * column
 
-    feature: List[np.ndarray] = []
+    feature: list[np.ndarray] = []
     for k in range(channel):
-        histogram: List[np.ndarray] = np.squeeze(
-            cv2.calcHist([image], [k], None, [BIN_SIZE], [0, 256]))
+        histogram: list[np.ndarray] = np.squeeze(
+            cv2.calcHist([image], [k], None, [BIN_SIZE], [0, 256])
+        )
         histogram = histogram / size
         feature.extend(histogram)
     return feature
 
 
 # Sử dụng thuộc tính moment
-def moment(channel: np.ndarray) -> List[float]:
+def moment(channel: np.ndarray) -> list[float]:
     """This function is used for find color moments.
 
     :param channel: channel (L, a, b)
@@ -102,7 +100,7 @@ def normalize_vector_min_max(feature):
 
 
 # Hàm chuẩn hóa L2
-def normalize_vector_norm(feature: List[float]) -> List[float]:
+def normalize_vector_norm(feature: list[float]) -> list[float]:
     """This function is used to normalize the vector using L2 normalization.
 
     :param feature: vector to be normalized
@@ -115,7 +113,7 @@ def normalize_vector_norm(feature: List[float]) -> List[float]:
 
 
 # Chuẩn hóa color-moment feature
-def color_moment(image: np.ndarray) -> List[float]:
+def color_moment(image: np.ndarray) -> list[float]:
     """This function is used to create color moment features.
 
     :param image: image
@@ -137,22 +135,21 @@ def color_moment(image: np.ndarray) -> List[float]:
 
 
 # Tính toán và chuẩn hóa cdc feature
-def calculate_cdc(image: np.ndarray) -> List[float]:
+def calculate_cdc(image: np.ndarray) -> list[float]:
     """This function is used to calculate the Color Difference Coherence (CDC) feature.
 
     :param image: image
     :return: CDC feature
     """
-    cdc_feature: List[float] = []
+    cdc_feature: list[float] = []
     for i in range(image.shape[2] - 1):
-        cdc_feature.append(
-            np.mean(np.abs(image[:, :, i] - image[:, :, i + 1])))
+        cdc_feature.append(np.mean(np.abs(image[:, :, i] - image[:, :, i + 1])))
 
     return cdc_feature
 
 
 # Tính toán và chuẩn hóa ccv feature
-def calculate_ccv(image: np.ndarray) -> List[float]:
+def calculate_ccv(image: np.ndarray) -> list[float]:
     """This function is used to calculate the Color Coherence Vector (CCV) feature.
 
     :param image: image
@@ -166,7 +163,7 @@ def calculate_ccv(image: np.ndarray) -> List[float]:
 
 # Trích xuất các đặc trưng từ ảnh
 def extract_features(image, feature: str):
-    """ This function is used to extract features from the given image.
+    """This function is used to extract features from the given image.
 
     :param image: image
     :return: extracted features
@@ -275,11 +272,7 @@ def load_data(path: str, number_of_image_count: int, feature: str):
 
 # Train and test KNN
 def train_and_test_knn(
-    k: int,
-    train_data: np.ndarray,
-    train_label: np.ndarray,
-    metric: str,
-    feature: str
+    k: int, train_data: np.ndarray, train_label: np.ndarray, metric: str, feature: str
 ) -> float:
     """Train and test KNN model using the given hyperparameters.
 
@@ -290,8 +283,7 @@ def train_and_test_knn(
     model.fit(train_data, train_label)
 
     print(f"<---------- TEST START: K = {k}, Metric = {metric} ---------->")
-    test_data, test_label = load_data(
-        TEST_PATH, number_of_test_image_count, feature)
+    test_data, test_label = load_data(TEST_PATH, number_of_test_image_count, feature)
 
     prediction = model.predict(test_data)
 
@@ -310,9 +302,7 @@ def train_and_test_knn(
 
 FEATURES = ["histogram", "moment", "cdc", "ccv"]
 K_VALUES = [1, 5]
-METRICS = ["euclidean", "correlation",
-           "chi-square", "intersection",
-           "bhattacharyya"]
+METRICS = ["euclidean", "correlation", "chi-square", "intersection", "bhattacharyya"]
 
 
 if __name__ == "__main__":
@@ -324,25 +314,33 @@ if __name__ == "__main__":
 
     color_list = os.listdir(TRAIN_PATH)
 
-    result_metric = pd.DataFrame(
-        columns=["Feature", "K", "Metric", "Accuracy"])
+    result_metric = pd.DataFrame(columns=["Feature", "K", "Metric", "Accuracy"])
 
     for feature in FEATURES:
         print(f"<---------- TRAIN START: Feature = {feature} ---------->")
         train_data, train_label = load_data(
-            TRAIN_PATH, number_of_train_image_count, feature)
+            TRAIN_PATH, number_of_train_image_count, feature
+        )
 
         for k in K_VALUES:
             for metric in METRICS:
                 accuracy = train_and_test_knn(
-                    k, train_data, train_label, metric, feature)
+                    k, train_data, train_label, metric, feature
+                )
                 new_record = pd.DataFrame(
-                    [{"Feature": feature, "K": k, "Metric": metric, "Accuracy": accuracy}])
+                    [
+                        {
+                            "Feature": feature,
+                            "K": k,
+                            "Metric": metric,
+                            "Accuracy": accuracy,
+                        }
+                    ]
+                )
                 result_metric = pd.concat(
-                    [result_metric, new_record], ignore_index=True)
+                    [result_metric, new_record], ignore_index=True
+                )
 
-    print(result_metric.pivot(
-        index=["K", "Feature"],
-        columns="Metric",
-        values="Accuracy"
-    ))
+    print(
+        result_metric.pivot(index=["K", "Feature"], columns="Metric", values="Accuracy")
+    )
