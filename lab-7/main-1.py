@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+"""
+VNU-UIT_CS231.P11
+21520850 - Lê Trung Hiếu
+"""
+
 import os
 import cv2
 from enum import Enum
@@ -71,9 +77,6 @@ def compare_img_keypoints(
 
 # Configuration
 DIR = "datasets"
-OUTPUT_DIR = "output_matches"
-os.makedirs(OUTPUT_DIR, exist_ok=True)
-
 CONFIG = [
     ("cow1.jpg", "cow2.jpg"),
     ("match1.jpg", "match2.jpg"),
